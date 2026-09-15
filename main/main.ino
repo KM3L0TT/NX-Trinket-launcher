@@ -14,7 +14,7 @@
 #define RCM_STRAP_TIME_us 1000000  // Amount of time to hold RCM_STRAP low and then launch payload
 
 #define ONBOARD_LED 13
-#define LED_CONFIRM_TIME_us 500000 // How long to show red or green light for success or fail
+#define LED_CONFIRM_TIME_us 750000 // How long to show red or green light for success or fail
 
 // Our two payloads, contains both the bin and it's size
 // Use tools/binConverter.py to convert any payload bin you wish to load
@@ -241,17 +241,17 @@ void sleep(int errorCode) {
 
 void setLedColor(const char color[]) {
   if (color == "red") {
-    strip.setPixelColor(0, 64, 0, 0);
+    strip.setPixelColor(0, 80, 0, 0);
   } else if (color == "green") {
-    strip.setPixelColor(0, 0, 64, 0);
+    strip.setPixelColor(0, 0, 80, 0);
   } else if (color == "orange") {
     strip.setPixelColor(0, 64, 32, 0);
   } else if (color == "blue") {
-    strip.setPixelColor(0, 0, 0, 64);
+    strip.setPixelColor(0, 0, 0, 100);
   } else if (color == "magenta") {
-    strip.setPixelColor(0, 64, 0, 64);
+    strip.setPixelColor(0, 40, 0, 50);
   } else if (color == "yellow") {
-    strip.setPixelColor(0,64,64,0);
+    strip.setPixelColor(0,40,40,0);
   } else if (color == "white") {
     strip.setPixelColor(0,16,16,16);
   } else if (color == "black") {
@@ -264,7 +264,7 @@ void setLedColor(const char color[]) {
 
 void wakeup() {
   if (RCM_ENABLE != 0){
-    setLedColor("blue");
+    setLedColor("orange");
     // Trigger RCM
     pinMode(RCM_STRAP_PIN, OUTPUT);
     pinMode(VOLUP_PIN, OUTPUT);
@@ -310,10 +310,10 @@ void setup()
     currentTime = millis();
     usb.Task();
 
-    if (currentTime > lastCheckTime + 100) {
+    if (currentTime > lastCheckTime + 30) {
       usb.ForEachUsbDevice(&findTegraDevice);
       if (blink && !foundTegra) {
-          setLedColor("orange"); //led to orange
+          setLedColor("blue"); //led to blue
       } else {
         setLedColor("black"); //led to black
       }
@@ -338,14 +338,17 @@ void setup()
   UHD_Pipe_Alloc(tegraDeviceAddress, 0x01, USB_HOST_PTYPE_BULK, USB_EP_DIR_OUT, 0x40, 0, USB_HOST_NB_BK_1);
   packetsWritten = 0;
 
-  if (digitalRead(PAYLOAD_SELECT) == HIGH){ // if payload select is floating, launch payload 1
+  if (digitalRead(PAYLOAD_SELECT) == HIGH){ // if payload select is floating, set LED to yellow and launch payload 1
     DEBUG_PRINTLN("Injecting payload 1...");
+    setLedColor("yellow");
     sendPayload(payload1Bin, PAYLOAD1_SIZE);
+    setLedColor("black");
   }
   else { // if payload select is bridged to ground, set LED to magenta and launch payload 2
     DEBUG_PRINTLN("Injecting payload 2...");
     setLedColor("magenta");
     sendPayload(payload2Bin, PAYLOAD2_SIZE);
+    setLedColor("black");
   }
   
   if (packetsWritten % 2 != 1)
